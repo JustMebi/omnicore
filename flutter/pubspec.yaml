@@ -1,0 +1,27 @@
+name: omnicore_workspace
+description: OmniCore SDK Flutter workspace.
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+
+workspace:
+  - packages/omnicore_core
+
+dev_dependencies:
+  melos: ^8.2.0
+
+melos:
+  name: omnicore
+
+  packages:
+    - packages/**
+
+  scripts:
+    analyze:
+      run: melos exec -c 1 -- dart analyze --fatal-infos
+      description: Static analysis for every package.
+
+    test:
+      run: melos exec -- dart test
+      description: Run unit and conformance tests for every package.

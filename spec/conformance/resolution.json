@@ -1,0 +1,89 @@
+{
+  "$comment": "Conformance fixtures for spec/api.md sections 2.3 and 2.4. Each case declares providers in registration order; a provider's `values` is the set of keys it is defined for. Absent keys are not in `values`.",
+  "cases": [
+    {
+      "name": "override beats every provider",
+      "overrides": { "newCheckout": true },
+      "flagProviders": [{ "name": "launchdarkly", "values": { "newCheckout": { "type": "bool", "value": false } } }],
+      "configProviders": [],
+      "calls": [{ "key": "newCheckout", "accessor": "bool", "default": false, "expected": { "value": true, "event": null } }]
+    },
+    {
+      "name": "first flag provider with a defined value wins",
+      "overrides": {},
+      "flagProviders": [
+        { "name": "unleash", "values": {} },
+        { "name": "launchdarkly", "values": { "newCheckout": { "type": "bool", "value": true } } },
+        { "name": "local-json", "values": { "newCheckout": { "type": "bool", "value": false } } }
+      ],
+      "configProviders": [],
+      "calls": [{ "key": "newCheckout", "accessor": "bool", "default": false, "expected": { "value": true, "event": null } }]
+    },
+    {
+      "name": "flag provider beats config provider",
+      "overrides": {},
+      "flagProviders": [{ "name": "unleash", "values": { "limit": { "type": "int", "value": 5 } } }],
+      "configProviders": [{ "name": "firebase-remote-config", "values": { "limit": { "type": "int", "value": 10 } } }],
+      "calls": [{ "key": "limit", "accessor": "int", "default": 1, "expected": { "value": 5, "event": null } }]
+    },
+    {
+      "name": "config provider used when no flag provider knows the key",
+      "overrides": {},
+      "flagProviders": [{ "name": "unleash", "values": {} }],
+      "configProviders": [{ "name": "firebase-remote-config", "values": { "banner": { "type": "string", "value": "hi" } } }],
+      "calls": [{ "key": "banner", "accessor": "string", "default": "", "expected": { "value": "hi", "event": null } }]
+    },
+    {
+      "name": "local default used when no provider defines the key",
+      "overrides": {},
+      "flagProviders": [{ "name": "unleash", "values": {} }],
+      "configProviders": [],
+      "calls": [{ "key": "timeoutMs", "accessor": "int", "default": 3000, "expected": { "value": 3000, "event": null } }]
+    },
+    {
+      "name": "missing key without default returns zero value and emits missing_key",
+      "overrides": {},
+      "flagProviders": [],
+      "configProviders": [],
+      "calls": [
+        { "key": "unknownBool", "accessor": "bool", "default": null, "expected": { "value": false, "event": "missing_key" } },
+        { "key": "unknownInt", "accessor": "int", "default": null, "expected": { "value": 0, "event": "missing_key" } },
+        { "key": "unknownString", "accessor": "string", "default": null, "expected": { "value": "", "event": "missing_key" } },
+        { "key": "unknownJson", "accessor": "json", "default": null, "expected": { "value": {}, "event": "missing_key" } }
+      ]
+    },
+    {
+      "name": "type mismatch falls back to default and emits type_mismatch",
+      "overrides": {},
+      "flagProviders": [{ "name": "local-json", "values": { "retries": { "type": "string", "value": "three" } } }],
+      "configProviders": [],
+      "calls": [{ "key": "retries", "accessor": "int", "default": 3, "expected": { "value": 3, "event": "type_mismatch" } }]
+    },
+    {
+      "name": "type mismatch with no default returns zero value",
+      "overrides": {},
+      "flagProviders": [{ "name": "local-json", "values": { "retries": { "type": "string", "value": "three" } } }],
+      "configProviders": [],
+      "calls": [{ "key": "retries", "accessor": "int", "default": null, "expected": { "value": 0, "event": "type_mismatch" } }]
+    }
+  ],
+  "refresh": [
+    {
+      "name": "failed refresh keeps last snapshot",
+      "snapshot": { "newCheckout": { "type": "bool", "value": true } },
+      "refreshOutcome": "throw",
+      "calls": [{ "key": "newCheckout", "accessor": "bool", "default": false, "expected": { "value": true, "event": "refresh_failed" } }]
+    },
+    {
+      "name": "successful refresh replaces snapshot",
+      "snapshot": { "newCheckout": { "type": "bool", "value": true } },
+      "refreshOutcome": { "newCheckout": { "type": "bool", "value": false } },
+      "calls": [{ "key": "newCheckout", "accessor": "bool", "default": true, "expected": { "value": false, "event": "refresh_succeeded" } }]
+    },
+    {
+      "name": "concurrent refresh calls share one in-flight request",
+      "concurrentRefreshCalls": 3,
+      "expected": { "upstreamFetches": 1 }
+    }
+  ]
+}

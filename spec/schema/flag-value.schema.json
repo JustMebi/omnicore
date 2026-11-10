@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://omnicore.dev/spec/schema/flag-value.schema.json",
+  "title": "ProviderValue",
+  "description": "A value returned by a provider for one key. Absent means the provider has no opinion (not represented here). See spec/api.md section 2.",
+  "type": "object",
+  "required": ["type", "value"],
+  "additionalProperties": false,
+  "properties": {
+    "type": { "enum": ["bool", "int", "double", "string", "json"] },
+    "value": {}
+  },
+  "allOf": [
+    { "if": { "properties": { "type": { "const": "bool" } } }, "then": { "properties": { "value": { "type": "boolean" } } } },
+    { "if": { "properties": { "type": { "const": "int" } } }, "then": { "properties": { "value": { "type": "integer" } } } },
+    { "if": { "properties": { "type": { "const": "double" } } }, "then": { "properties": { "value": { "type": "number" } } } },
+    { "if": { "properties": { "type": { "const": "string" } } }, "then": { "properties": { "value": { "type": "string" } } } },
+    { "if": { "properties": { "type": { "const": "json" } } }, "then": { "properties": { "value": { "type": ["object", "array"] } } } }
+  ]
+}

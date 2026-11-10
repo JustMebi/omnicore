@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://omnicore.dev/spec/schema/deep-link.schema.json",
+  "title": "DeepLink",
+  "description": "A successfully parsed deep link. See spec/api.md section 1.1.",
+  "type": "object",
+  "required": ["scheme", "path", "query", "raw"],
+  "additionalProperties": false,
+  "properties": {
+    "scheme": { "type": "string", "minLength": 1 },
+    "host": { "type": ["string", "null"] },
+    "path": { "type": "string", "pattern": "^/" },
+    "query": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "fragment": { "type": ["string", "null"] },
+    "raw": { "type": "string" }
+  }
+}

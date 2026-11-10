@@ -1,0 +1,11 @@
+name: omnicore_core
+description: Pure Dart core of the OmniCore SDK - deep link parsing, provider chain and typed flag/config access. Implements spec/api.md.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.5.0
+
+dev_dependencies:
+  test: ^1.25.0

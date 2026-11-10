@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*", "sharedGlobals"],
+    "sharedGlobals": ["{workspaceRoot}/../spec/**/*"]
+  },
+  "targetDefaults": {
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["default", "^default"],
+      "cache": true
+    },
+    "typecheck": {
+      "inputs": ["default", "^default"],
+      "cache": true
+    }
+  }
+}

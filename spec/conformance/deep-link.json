@@ -1,0 +1,129 @@
+{
+  "$comment": "Conformance fixtures for spec/api.md section 1. Config: allowedSchemes and allowedHosts apply to every case unless overridden in the case.",
+  "config": {
+    "allowedSchemes": ["omnicore", "https"],
+    "allowedHosts": ["links.example.com"]
+  },
+  "parse": [
+    {
+      "name": "custom scheme with path and query",
+      "input": "omnicore://product/42?ref=email&utm=a%20b",
+      "expected": {
+        "scheme": "omnicore",
+        "host": "product",
+        "path": "/42",
+        "query": { "ref": "email", "utm": "a b" },
+        "fragment": null,
+        "raw": "omnicore://product/42?ref=email&utm=a%20b"
+      }
+    },
+    {
+      "name": "scheme and host are lowercased",
+      "input": "OmniCore://Product/",
+      "expected": {
+        "scheme": "omnicore",
+        "host": "product",
+        "path": "/",
+        "query": {},
+        "fragment": null,
+        "raw": "OmniCore://Product/"
+      }
+    },
+    {
+      "name": "trailing slash removed from non-root path",
+      "input": "https://links.example.com/a/b/",
+      "expected": {
+        "scheme": "https",
+        "host": "links.example.com",
+        "path": "/a/b",
+        "query": {},
+        "fragment": null,
+        "raw": "https://links.example.com/a/b/"
+      }
+    },
+    {
+      "name": "repeated query key, last wins",
+      "input": "omnicore://x?k=1&k=2",
+      "expected": {
+        "scheme": "omnicore",
+        "host": "x",
+        "path": "/",
+        "query": { "k": "2" },
+        "fragment": null,
+        "raw": "omnicore://x?k=1&k=2"
+      }
+    },
+    {
+      "name": "key without equals maps to empty string",
+      "input": "omnicore://x?flag",
+      "expected": {
+        "scheme": "omnicore",
+        "host": "x",
+        "path": "/",
+        "query": { "flag": "" },
+        "fragment": null,
+        "raw": "omnicore://x?flag"
+      }
+    },
+    {
+      "name": "fragment is captured without hash",
+      "input": "https://links.example.com/docs#install",
+      "expected": {
+        "scheme": "https",
+        "host": "links.example.com",
+        "path": "/docs",
+        "query": {},
+        "fragment": "install",
+        "raw": "https://links.example.com/docs#install"
+      }
+    }
+  ],
+  "reject": [
+    {
+      "name": "scheme not allowed",
+      "input": "intent://evil/x"
+    },
+    {
+      "name": "https host not allowed",
+      "input": "https://evil.example.org/x"
+    },
+    {
+      "name": "not an absolute URI",
+      "input": "product/42"
+    },
+    {
+      "name": "empty string",
+      "input": ""
+    }
+  ],
+  "match": [
+    {
+      "name": "path param extracted",
+      "pattern": "/product/:id",
+      "path": "/product/42",
+      "query": { "ref": "email" },
+      "expected": { "matched": true, "params": { "id": "42", "ref": "email" } }
+    },
+    {
+      "name": "path param overrides query param of same name",
+      "pattern": "/product/:id",
+      "path": "/product/42",
+      "query": { "id": "99" },
+      "expected": { "matched": true, "params": { "id": "42" } }
+    },
+    {
+      "name": "segment count mismatch",
+      "pattern": "/product/:id",
+      "path": "/product/42/reviews",
+      "query": {},
+      "expected": { "matched": false, "params": {} }
+    },
+    {
+      "name": "literal segments are case sensitive",
+      "pattern": "/Product/:id",
+      "path": "/product/42",
+      "query": {},
+      "expected": { "matched": false, "params": {} }
+    }
+  ]
+}

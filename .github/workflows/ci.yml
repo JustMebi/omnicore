@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  flutter:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub global activate melos
+      - run: melos bootstrap
+      - run: melos run analyze
+      - run: melos run test
+
+  rn:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rn
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: rn/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec nx run-many -t typecheck test --skip-nx-cache
